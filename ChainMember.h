@@ -7,7 +7,7 @@
 class ChainMember {
 protected:
 	Vector3 mposition;
-	Vector3 mdirection;
+	Vector3 mdirection; // UV
 	float mlength;
 
 public:
@@ -22,7 +22,7 @@ public:
 
 class HingeBone : ChainMember {
 private:
-	Vector3 mrotationAxis;
+	Vector3 mrotationAxis;	// Testing with global members first
 public:
 	HingeBone();
 	void FreeSeek(Vector3 target);
