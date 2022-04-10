@@ -1,23 +1,95 @@
 #pragma once
 #include <iostream>
+#include <array>
+#include <cstdarg>
 
-template<typename T>
+
+// Vector<3> vec3( {3,5,7} );
+template<int I>
 struct Vector {
-public:
-	Vector();
-	virtual ~Vector();
+	std::array<float, I-1> mcoords;
+
+
+	Vector(std::initializer_list<float> coords) {
+		for (int i = 0; i < I - 1; ++i) {
+			mcoords[i] = coords[i];
+		}
+	}
+	
+	// Need a conversion constructor so we can do things like Vector<5> + Vector<3>
+	// Or check to make sure vector being added has fewer or equal dimensions and iterate over other.mcoords
+
+	Vector(const Vector& other) {
+		mcoords = other.mcoords;
+	}
+	
+	float Component(int comp) {
+		return mcoords[comp-1];
+	}
+
+	Vector& operator +(const Vector& other) {
+		Vector<I> temp;
+		for (int i = 0; i < I; ++i) {
+			temp.mcoords[i] = mcoords[i] + other.mcoords[i]
+		}
+
+		return temp;
+	}
+	Vector& operator +=(const Vector& other) {
+		for (int i = 0; i < I; ++i) {
+			mcoords[i] += other.mcoords[i]
+		}
+
+		return temp;
+	}
+	Vector& operator -(const Vector& other) {
+		Vector<I> temp;
+		for (int i = 0; i < I; ++i) {
+			temp.mcoords[i] = mcoords[i] - other.mcoords[i]
+		}
+
+		return temp;
+	}
+	Vector& operator -=(const Vector& other) {
+		for (int i = 0; i < I; ++i) {
+			mcoords[i] -= other.mcoords[i]
+		}
+
+		return temp;
+	}
+	Vector& operator *(const float& factor) {
+		Vector<I> temp;
+		for (int i = 0; i < I; ++i) {
+			temp.mcoords[i] = mcoords[i] * factor
+		}
+
+		return temp;
+	}
+	Vector& operator *=(const float& factor) {
+		for (auto& it : mcoords) {
+			it *= factor;
+		}
+	}
+	Vector& operator /(const float& factor) {
+		Vector<I> temp;
+		for (int i = 0; i < I; ++i) {
+			temp.mcoords[i] = mcoords[i] / factor
+		}
+
+		return temp;
+	}
+	Vector& operator /=(const float& factor) {
+		for (auto& it : mcoords) {
+			it /= factor;
+		}
+	}
+
+	friend ostream& operator <<(ostream& out, const Vector& vec) {
+		out << mcoords;
+		return out;
+	}
 };
 
-struct Vector2 : Vector<Vector2> {
-private:
-	float mx, my;
-
-public:
-	Vector2();
-	Vector2(float x, float y);
-
-	struct Vector3 toVec3();
-};
 
 
 
@@ -29,7 +101,7 @@ public:
 //	Vector2();
 //	Vector2(float x, float y);
 //
-//	struct Vector3 toVec3();
+////	struct Vector3 toVec3();
 //	
 //	Vector2& operator =(const Vector2& a);
 //	Vector2& operator +(const Vector2& a);
