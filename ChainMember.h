@@ -3,28 +3,27 @@
 #include <vector>
 #include "Math.h"
 
-// Should this be a template or should we store everything as joints in 3-space?
 class ChainMember {
 protected:
-	Vector3 mposition;
-	Vector3 mdirection; // UV
+	Vector<3> mposition;
+	Vector<3> mdirection; // UV
 	float mlength;
 
 public:
 	ChainMember();
 	virtual ~ChainMember();
-	Vector3 Position();
-	void SetPosition(Vector3 target);
-	float Length();
-	virtual void FreeSeek(Vector3 target);
-	virtual void ConstrainedSeek(Vector3 target);
+	Vector<3> position();
+	void setPosition(Vector<3> target);
+	float length();
+	virtual void freeSeek(Vector<3> target);
+	virtual void constrainedSeek(const Vector<3>& target);
 };
 
 class HingeBone : ChainMember {
 private:
-	Vector3 mrotationAxis;	// Testing with global members first
+	Vector<3> mrotationAxis;	// Testing with global members first
 public:
 	HingeBone();
-	void FreeSeek(Vector3 target);
-	void ConstrainedSeek(Vector3 target);
+	void freeSeek(Vector<3> target);
+	void constrainedSeek(Vector<3> target);
 };

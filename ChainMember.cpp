@@ -1,33 +1,33 @@
 #include "ChainMember.h"
 
 ChainMember::ChainMember() {
-	mposition = Vector3();
+	mposition = Vector<3>();
 }
 
-Vector3 ChainMember::Position() { return mposition; }
+Vector<3> ChainMember::position() { return mposition; }
 
-void ChainMember::SetPosition(Vector3 target) {
+void ChainMember::setPosition(Vector<3> target) {
 	mposition = target;
 }
 
-float ChainMember::Length() { return mlength; }
+float ChainMember::length() { return mlength; }
 
 
 
-void HingeBone::FreeSeek(Vector3 target) {
+void HingeBone::freeSeek(Vector<3> target) {
 	float ratio = mlength / distance(mposition, target); // start using dists instead of inherent lengths
 	mposition = (1.0f - ratio) * target + ratio * mposition;
 }
 
 // I don't think the Bone should know about other bones, so how does it use Chain.mdists?
-void HingeBone::ConstrainedSeek(Vector3 target) {
+void HingeBone::constrainedSeek(Vector<3> target) {
 	float ratio = mlength / distance(mposition, target); // start using dists instead of inherent lengths
 	mposition = (1.0f - ratio) * target + ratio * mposition;
 	// Clamp to the correct axis
 	// Clamp angle like implemented in Segments
 }
 
-//bool fabrikSeek(Vector3 target, int iter, double accuracy) {
+//bool fabrikSeek(Vector<3> target, int iter, double accuracy) {
 //	std::vector<double> dists;
 //	std::shared_ptr<Joint> root = mjoints[0];
 //

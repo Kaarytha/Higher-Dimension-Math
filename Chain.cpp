@@ -11,12 +11,12 @@ void Chain::AddJoint(ChainMember& joint) {
 
 void Chain::UpdateDists() {
 	for (int i = 0; i < mchain.size(); ++i) {
-		mdists[i] = mchain[i]->Length();
+		mdists[i] = mchain[i]->length();
 	}
 }
 
 void Chain::Fabrik(Vector3 goal) {
-	Vector3 root = mchain[0]->Position();
+	Vector3 root = mchain[0]->position();
 	Vector3 target = goal;
 
 	// Might deal with far end of chain here
@@ -25,8 +25,8 @@ void Chain::Fabrik(Vector3 goal) {
 
 	// Forwards pass over mchain
 	for (int i = mchain.size() - 1; i >= 0; --i) {	// Make this range based after it works
-		mchain[i]->FreeSeek(target);
-		target = mchain[i]->Position();
+		mchain[i]->freeSeek(target);
+		target = mchain[i]->position();
 	}
 
 	// Might deal with close end of chain here
@@ -34,7 +34,7 @@ void Chain::Fabrik(Vector3 goal) {
 
 	// Backwards pass over mchain
 	for (auto& it : mchain) {
-		it->ConstrainedSeek(target);
-		target - it->Position();
+		it->constrainedSeek(target);
+		target - it->position();
 	}
 }
