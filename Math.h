@@ -1,94 +1,123 @@
 #pragma once
 #include <iostream>
 #include <array>
-#include <cstdarg>
 
-
-// Vector<3> vec3( {3,5,7} );
+/*	Vector class with arbitrary number of float components.
+* 
+*	Called as Vector<int numOfComponents> name{std::initializer_list<float> coords};
+*	If coords is empty, a zero vector will be created;
+* 
+*/
 template<int I>
 struct Vector {
-	std::array<float, I-1> mcoords;
+	std::array<float, I> mcoords;
 
+	Vector() {
+		mcoords.fill(0);
+	}
 
+	// Allows for Vector<3> vec3{3,5,7};
 	Vector(std::initializer_list<float> coords) {
-		for (int i = 0; i < I - 1; ++i) {
-			mcoords[i] = coords[i];
+		for (int i = 0; i < I; ++i) {
+			mcoords[i] = *(coords.begin() + i);
 		}
 	}
-	
-	// Need a conversion constructor so we can do things like Vector<5> + Vector<3>
-	// Or check to make sure vector being added has fewer or equal dimensions and iterate over other.mcoords
 
-	Vector(const Vector& other) {
+	// Copy constructor only called if vectors have same number of components.
+	// Check if commented out constructor below works fine
+	template<int J>
+	Vector(const Vector<J>& other, char(*)[I == J ? 1 : -1] = 0) {
 		mcoords = other.mcoords;
 	}
-	
-	float Component(int comp) {
-		return mcoords[comp-1];
+	//Vector(const Vector<I>& other) {
+	//	mcoords = other.mcoords;
+	//}
+
+	// Conversion constructor that throws error when Vector's have different number of components
+	template<int J>
+	Vector(const Vector<J>& other, char(*)[I != J ? 1 : -1] = 0) {
+		std::cerr << "Error: no conversion from Vector<" << I << "> to Vector<" << J << ">" << std::endl;
 	}
 
-	Vector& operator +(const Vector& other) {
+	// Gets component comp value, for example, Component(1) gets the firt component
+	float Component(int comp) {
+		return mcoords[comp - 1];
+	}
+
+	Vector& operator =(const Vector& other) {
+		mcoords = other.mcoords;
+		return *this;
+	}
+	Vector operator +(const Vector& other) {
 		Vector<I> temp;
 		for (int i = 0; i < I; ++i) {
-			temp.mcoords[i] = mcoords[i] + other.mcoords[i]
+			temp.mcoords[i] = mcoords[i] + other.mcoords[i];
 		}
-
 		return temp;
 	}
 	Vector& operator +=(const Vector& other) {
 		for (int i = 0; i < I; ++i) {
-			mcoords[i] += other.mcoords[i]
+			mcoords[i] += other.mcoords[i];
 		}
-
-		return temp;
+		return *this;
 	}
-	Vector& operator -(const Vector& other) {
+	Vector operator -(const Vector& other) {
 		Vector<I> temp;
 		for (int i = 0; i < I; ++i) {
-			temp.mcoords[i] = mcoords[i] - other.mcoords[i]
+			temp.mcoords[i] = mcoords[i] - other.mcoords[i];
 		}
-
 		return temp;
 	}
 	Vector& operator -=(const Vector& other) {
 		for (int i = 0; i < I; ++i) {
-			mcoords[i] -= other.mcoords[i]
+			mcoords[i] -= other.mcoords[i];
 		}
-
-		return temp;
+		return *this;
 	}
-	Vector& operator *(const float& factor) {
+	Vector operator *(const float& factor) {
 		Vector<I> temp;
 		for (int i = 0; i < I; ++i) {
-			temp.mcoords[i] = mcoords[i] * factor
+			temp.mcoords[i] = mcoords[i] * factor;
 		}
-
+		return temp;
+	}
+	friend Vector operator *(const float& factor, const Vector& vec) {
+		Vector<I> temp;
+		for (int i = 0; i < I; ++i) {
+			temp.mcoords[i] = factor * vec.mcoords[i];
+		}
 		return temp;
 	}
 	Vector& operator *=(const float& factor) {
 		for (auto& it : mcoords) {
 			it *= factor;
 		}
+		return *this;
 	}
-	Vector& operator /(const float& factor) {
+	Vector operator /(const float& factor) {
 		Vector<I> temp;
 		for (int i = 0; i < I; ++i) {
-			temp.mcoords[i] = mcoords[i] / factor
+			temp.mcoords[i] = mcoords[i] / factor;
 		}
-
 		return temp;
 	}
 	Vector& operator /=(const float& factor) {
 		for (auto& it : mcoords) {
 			it /= factor;
 		}
+		return *this;
 	}
 
-	friend ostream& operator <<(ostream& out, const Vector& vec) {
-		out << mcoords;
-		return out;
+	friend std::ostream& operator <<(std::ostream& out, const Vector<I>& vec) {
+		for (int i = 0; i < I - 1; ++i) {
+			out << vec.mcoords[i] << ", ";
+		}
+		return out << vec.mcoords.back();
 	}
+
 };
+
+
 
 
 
