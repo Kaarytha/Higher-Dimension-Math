@@ -4,37 +4,25 @@ Chain::Chain() {
 
 }
 
-void Chain::AddJoint(ChainMember& joint) {
-	mchain.reserve(1);
-	mchain.emplace_back(std::make_unique<ChainMember>(joint));
+void Chain::addJoint(ChainMember& joint) {
+	mjoints.reserve(1);
+	mjoints.emplace_back(std::make_unique<ChainMember>(joint));
 }
 
-void Chain::UpdateDists() {
-	for (int i = 0; i < mchain.size(); ++i) {
-		mdists[i] = mchain[i]->length();
-	}
-}
-
-void Chain::Fabrik(Vector3 goal) {
-	Vector3 root = mchain[0]->position();
-	Vector3 target = goal;
-
-	// Might deal with far end of chain here
-
-
+// Performs a single iteration of Fabrik towards a Vector<3> goal
+void Chain::fabrik(Vector<3> goal) {
+	Vector<3> root = mjoints[0]->position();
+	Vector<3> target = goal;
 
 	// Forwards pass over mchain
-	for (int i = mchain.size() - 1; i >= 0; --i) {	// Make this range based after it works
-		mchain[i]->freeSeek(target);
-		target = mchain[i]->position();
+	for (int i = mjoints.size(); i >= 0; --i) {
+		mjoints[i]->freeSeek(target);
+		target = mjoints[i]->position();
 	}
 
-	// Might deal with close end of chain here
-
-
 	// Backwards pass over mchain
-	for (auto& it : mchain) {
-		it->constrainedSeek(target);
-		target - it->position();
+	for (int i = 1; i < mjoints.size(); ++i) {
+		mjoints[i]->rconstrainedSeek(*mjoints[i-1]);
+		target = mjoints[i]->end();
 	}
 }

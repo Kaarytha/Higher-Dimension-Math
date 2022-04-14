@@ -1,6 +1,6 @@
 #define _USE_MATH_DEFINES
 
-#include "Math.h"
+#include "Vector.h"
 #include "Segment.h"
 #include <cmath>
 #include <iostream>

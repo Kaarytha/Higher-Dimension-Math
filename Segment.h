@@ -5,6 +5,8 @@
 #include <cmath>
 #include <vector>
 
+// This is a deprecated way of doing it, completely replaced by Chain and ChainMember
+
 class Segment2 {
 
 public:

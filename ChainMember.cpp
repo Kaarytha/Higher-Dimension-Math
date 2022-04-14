@@ -1,50 +1,88 @@
 #include "ChainMember.h"
 
 ChainMember::ChainMember() {
-	mposition = Vector<3>();
+	mposition = {};
+	mend = {};
+	mdirection = {};
+	mreference = {};
+	mlength = 0;
 }
 
-Vector<3> ChainMember::position() { return mposition; }
+const Vector<3>& ChainMember::position() const { return mposition; }
 
-void ChainMember::setPosition(Vector<3> target) {
+const Vector<3>& ChainMember::end() const { return mend; }
+
+const Vector<3>& ChainMember::direction() const { return mdirection; }
+
+const Vector<3>& ChainMember::reference() const { return mreference; }
+
+const float ChainMember::length() const { return mlength; }
+
+void ChainMember::setPosition(const Vector<3>& target) {
 	mposition = target;
 }
 
-float ChainMember::length() { return mlength; }
-
-
-
-void HingeBone::freeSeek(Vector<3> target) {
-	float ratio = mlength / distance(mposition, target); // start using dists instead of inherent lengths
-	mposition = (1.0f - ratio) * target + ratio * mposition;
+void ChainMember::setEnd(const Vector<3>& target) {
+	mend = target;
 }
 
-// I don't think the Bone should know about other bones, so how does it use Chain.mdists?
-void HingeBone::constrainedSeek(Vector<3> target) {
-	float ratio = mlength / distance(mposition, target); // start using dists instead of inherent lengths
+void ChainMember::setDirection(const Vector<3>& direction) {
+	mdirection = direction;
+}
+
+void ChainMember::update(const Vector<3>& target) {
+	mposition = target;
+	mend = mposition + mdirection * mlength;
+}
+
+
+
+HingeBone::HingeBone() {
+	mposition = {};
+}
+
+void HingeBone::freeSeek(const Vector<3>& target) {
+	float ratio = mlength / distance(mposition, target);
 	mposition = (1.0f - ratio) * target + ratio * mposition;
+	mend = target;
+	// Keep track of other axes
+}
+
+void HingeBone::rfreeSeek(const ChainMember& previous) {
+	float ratio = mlength / distance(mend, previous.end());
+	mposition = previous.end();
+	mend = (1.0f - ratio) * previous.end() + ratio * mend;
+}
+
+void HingeBone::rfreeSeek(const Vector<3>& target) {
+	float ratio = mlength / distance(mend, target);
+	mposition = target;
+	mend = (1.0f - ratio) * target + ratio * mend;
+}
+
+void HingeBone::constrainedSeek(const ChainMember& next) {
+	float ratio = mlength / distance(mposition, next.position());
+	setPosition((1.0f - ratio) * next.position() + ratio * mposition);
+	setEnd(next.position());
 	// Clamp to the correct axis
+
+	
 	// Clamp angle like implemented in Segments
 }
 
-//bool fabrikSeek(Vector<3> target, int iter, double accuracy) {
-//	std::vector<double> dists;
-//	std::shared_ptr<Joint> root = mjoints[0];
-//
-//	dists.reserve(mjoints.size() - 1);
-//	for (auto it = std::begin(mjoints); it != std::end(mjoints) - 1; ++it) {
-//		dists.emplace_back(distance(it, it + 1));
-//	}
-//
-//	for (int i = 0; i < iter; ++i) {
-//		// Forwards
-//		mjoints.back()->Update(target);
-//
-//		for (auto it = std::rend(mjoints) - 1; it != std::rbegin(mjoints); --it) {
-//			double r = distance(it, it + 1);
-//			double lambda = dists[it] / r;
-//			Joint& iter = **it;
-//			iter.Update((1 - lambda) * **(it + 1) + lambda * **it);
-//		}
-//	}
-//}
+void HingeBone::rconstrainedSeek(const ChainMember& previous) {
+	float ratio = mlength / distance(mend, previous.end());
+	setPosition(previous.end());
+	setEnd((1.0f - ratio) * previous.end() + ratio * mend);
+
+	/*	The below is equivelant to this but optimized for reduced memory
+	Vector<3> projection = mend.planarProjection(previous.rotationAxis(), previous.end());
+	Vector<3> newDir = (projection - position()).normalised();
+	setEnd(mposition + newDir * length());*/
+
+	// Clamp to the correct axis
+	setDirection((mend.planarProjection(previous.end(), previous.direction()) - mposition).normalised());
+	setEnd(mposition + mdirection * mlength);
+
+	// Clamp angle like implemented in Segments
+}

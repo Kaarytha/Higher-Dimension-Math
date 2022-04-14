@@ -1,12 +1,16 @@
 #pragma once
 #include <iostream>
 #include <array>
+#include <cmath>
+#include <functional>
+#include "Hyperplane.h"
+
+template<int I>
+struct Hyperplane;
 
 /*	Vector class with arbitrary number of float components.
-* 
-*	Called as Vector<int numOfComponents> name{std::initializer_list<float> coords};
-*	If coords is empty, a zero vector will be created;
-* 
+*	This is designed to be used efficiently with a few kinds of Vectors.
+*	Using with many different kinds of Vectors results in significant bloat.
 */
 template<int I>
 struct Vector {
@@ -16,11 +20,18 @@ struct Vector {
 		mcoords.fill(0);
 	}
 
-	// Allows for Vector<3> vec3{3,5,7};
+	/*	Allows for Vector<3> vec3{3,5,7};
+	*	Called as Vector<int numOfComponents> name{ std::initializer_list<float> coords };
+	*	If coords is empty, a zero vector will be created;
+	*/
 	Vector(std::initializer_list<float> coords) {
 		for (int i = 0; i < I; ++i) {
 			mcoords[i] = *(coords.begin() + i);
 		}
+	}
+
+	explicit Vector(std::array<float, I> coords) {
+		mcoords = coords;
 	}
 
 	// Copy constructor only called if vectors have same number of components.
@@ -40,7 +51,7 @@ struct Vector {
 	}
 
 	// Gets component comp value, for example, Component(1) gets the firt component
-	float Component(int comp) {
+	float component(int comp) {
 		return mcoords[comp - 1];
 	}
 
@@ -48,7 +59,7 @@ struct Vector {
 		mcoords = other.mcoords;
 		return *this;
 	}
-	Vector operator +(const Vector& other) {
+	Vector operator +(const Vector& other) const {
 		Vector<I> temp;
 		for (int i = 0; i < I; ++i) {
 			temp.mcoords[i] = mcoords[i] + other.mcoords[i];
@@ -61,7 +72,7 @@ struct Vector {
 		}
 		return *this;
 	}
-	Vector operator -(const Vector& other) {
+	Vector operator -(const Vector& other) const {
 		Vector<I> temp;
 		for (int i = 0; i < I; ++i) {
 			temp.mcoords[i] = mcoords[i] - other.mcoords[i];
@@ -74,7 +85,7 @@ struct Vector {
 		}
 		return *this;
 	}
-	Vector operator *(const float& factor) {
+	Vector operator *(const float& factor) const {
 		Vector<I> temp;
 		for (int i = 0; i < I; ++i) {
 			temp.mcoords[i] = mcoords[i] * factor;
@@ -94,7 +105,7 @@ struct Vector {
 		}
 		return *this;
 	}
-	Vector operator /(const float& factor) {
+	Vector operator /(const float& factor) const {
 		Vector<I> temp;
 		for (int i = 0; i < I; ++i) {
 			temp.mcoords[i] = mcoords[i] / factor;
@@ -115,12 +126,79 @@ struct Vector {
 		return out << vec.mcoords.back();
 	}
 
+	// Returns the magnitude of the Vector as a float
+	float magnitude() const {
+		float mag = 0;
+		for (auto& it : mcoords) {
+			mag += it * it;
+		}
+		return std::sqrt(mag);
+	}
+
+	// Returns dot product of two Vectors as a float
+	friend float dotProduct(const Vector<I>& a, const Vector<I>& b) {
+		std::function<float(int)> helper = [&](int i) {
+			if (i == I - 1) {
+				return a.mcoords[i] * b.mcoords[i];
+			}
+			return a.mcoords[i] * b.mcoords[i] + helper(++i);
+		};
+		return helper(0);
+	}
+
+	// Returns distance between two Vectors as a float
+	friend float distance(const Vector<I>& a, const Vector<I>& b) {
+		std::function<float(int)> helper = [&](int i) {
+			if (i == I - 1) {
+				return std::sqrt(b.mcoords[i] - a.mcoords[i]);
+			}
+			return std::sqrt(b.mcoords[i] - a.mcoords[i]) + helper(++i);
+		};
+		return std::sqrt(helper(0));
+	}
+
+	// Scales Vector to a unit vector
+	void normalise() {
+		float mag = this->magnitude();
+		for (auto it : mcoords) {
+			it = it / mag;
+		}
+	}
+
+	//Should this have an overload called on a pointer that so no temporary is created?
+	// Returns an equivelant Vector scaled to a unit vector
+	Vector<I> normalised() const {
+		float mag = this->magnitude();
+		std::array<float, I> coords;
+		for (int i = 0; i < I; ++i) {
+			coords[i] = mcoords[i] / mag;
+		}
+		return Vector<I>(coords);
+	}
+
+	// Returns Vector projected onto plane through origin with Vector<I> normal
+	Vector<I> planarProjection(const Vector<I>& normal) {
+		Vector<I> norm = normal.normalise();
+		return *this - dotProduct(this, norm) * norm;
+	}
+
+	// Returns Vector projected onto plane defined by Vector<I> point and Vector<I> normal
+	Vector<I> planarProjection(const Vector<I>& point, const Vector<I>& normal) {
+		Vector<I> norm = normal.normalised();
+		return *this - (dotProduct(this, norm) - dotProduct(norm, point)) * norm;
+	}
+
+	Vector<I> planarProjection(const Hyperplane<I>& plane) {
+		Vector<I> norm = plane.mnormal->normalised();
+		return *this - (dotProduct(this, norm) - dotProduct(norm, plane.mpoint)) * norm;
+	}
 };
 
+// For now, do not generalize rotations. Get rotations working in three dimensions since that is what we are working in
+// Rotations should be spherical space rotations not euler planar rotations, this way, they can only happen one way
+// Don't use getter and setters unless necessary
 
-
-
-
+// Add optional variables for magnitude and norms
 
 //typedef struct Vector2 {
 //

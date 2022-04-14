@@ -4,15 +4,13 @@
 #include <iterator>
 #include "ChainMember.h"
 
+// Stores all bones in a IK chain and a reference bone that shows initial position
 class Chain {
 private:
-	std::vector<std::unique_ptr<ChainMember>> mchain;
-	static std::vector<float> mdists;
+	std::vector<std::unique_ptr<ChainMember>> mjoints;
 
 public:
 	Chain();
-	void AddJoint(ChainMember& joint);
-	void UpdateDists();
-	void UpdateDist(int index);	// This might need to be called with the pointer I want to update
-	void Fabrik(Vector3 goal);
+	void addJoint(ChainMember& joint);
+	void fabrik(Vector<3> goal); // Solves Fabrik for a point
 };
