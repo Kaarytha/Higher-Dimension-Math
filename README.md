@@ -1,2 +1,2 @@
 # Inverse-Kinematics
-An implementation of Inverse Kinematics entirely in C++.
+A C++ library for doing math in N dimensions.
