@@ -1,12 +1,22 @@
+// A 1 dimensional Tensor
+
 #pragma once
+
 #include <iostream>
 #include <array>
 #include <cmath>
+#include <numbers>
 #include <functional>
+
 #include "Hyperplane.h"
+#include "Matrix.h"
+
+
 
 template<int I>
 struct Hyperplane;
+
+struct Matrix;
 
 /*	Vector class with arbitrary number of float components.
 *	This is designed to be used efficiently with a few kinds of Vectors.
@@ -55,69 +65,70 @@ struct Vector {
 		return mcoords[comp - 1];
 	}
 
-	Vector& operator =(const Vector& other) {
+	Vector& operator=(const Vector& other) {
 		mcoords = other.mcoords;
 		return *this;
 	}
-	Vector operator +(const Vector& other) const {
+	Vector operator+(const Vector& other) const {
 		Vector<I> temp;
 		for (int i = 0; i < I; ++i) {
 			temp.mcoords[i] = mcoords[i] + other.mcoords[i];
 		}
 		return temp;
 	}
-	Vector& operator +=(const Vector& other) {
+	Vector& operator+=(const Vector& other) {
 		for (int i = 0; i < I; ++i) {
 			mcoords[i] += other.mcoords[i];
 		}
 		return *this;
 	}
-	Vector operator -(const Vector& other) const {
+	Vector operator-(const Vector& other) const {
 		Vector<I> temp;
 		for (int i = 0; i < I; ++i) {
 			temp.mcoords[i] = mcoords[i] - other.mcoords[i];
 		}
 		return temp;
 	}
-	Vector& operator -=(const Vector& other) {
+	Vector& operator-=(const Vector& other) {
 		for (int i = 0; i < I; ++i) {
 			mcoords[i] -= other.mcoords[i];
 		}
 		return *this;
 	}
-	Vector operator *(const float& factor) const {
+	Vector operator*(const float& factor) const {
 		Vector<I> temp;
 		for (int i = 0; i < I; ++i) {
 			temp.mcoords[i] = mcoords[i] * factor;
 		}
 		return temp;
 	}
-	friend Vector operator *(const float& factor, const Vector& vec) {
+	friend Vector operator*(const float& factor, const Vector& vec) {
 		Vector<I> temp;
 		for (int i = 0; i < I; ++i) {
 			temp.mcoords[i] = factor * vec.mcoords[i];
 		}
 		return temp;
 	}
-	Vector& operator *=(const float& factor) {
+	Vector& operator*=(const float& factor) {
 		for (auto& it : mcoords) {
 			it *= factor;
 		}
 		return *this;
 	}
-	Vector operator /(const float& factor) const {
+	Vector operator/(const float& factor) const {
 		Vector<I> temp;
 		for (int i = 0; i < I; ++i) {
 			temp.mcoords[i] = mcoords[i] / factor;
 		}
 		return temp;
 	}
-	Vector& operator /=(const float& factor) {
+	Vector& operator/=(const float& factor) {
 		for (auto& it : mcoords) {
 			it /= factor;
 		}
 		return *this;
 	}
+	float operator[](const int& index) const { return mcoords[index]; }
 
 	friend std::ostream& operator <<(std::ostream& out, const Vector<I>& vec) {
 		for (int i = 0; i < I - 1; ++i) {
@@ -176,6 +187,22 @@ struct Vector {
 		return Vector<I>(coords);
 	}
 
+	// Returns a representation of the Vector as a matrix
+	Matrix asMatrix() const {
+		Matrix temp({ {mcoords} });
+		return temp;
+	}
+
+	float angleFrom(const Vector<I>& other) const {
+		return 180.0 * std::acos(dotProduct(*this, other)) / std::numbers::pi;
+	}
+
+	// Check if vectors need to be coplanar
+	// Returns angle between two vectors
+	float angleBetween(const Vector<I>& u, const Vector<I>& v) const {
+		return 180. * std::acos(dotProduct(u, v)) / std::numbers::pi;
+	}
+
 	// Returns Vector projected onto plane through origin with Vector<I> normal
 	Vector<I> planarProjection(const Vector<I>& normal) {
 		Vector<I> norm = normal.normalise();
@@ -191,6 +218,22 @@ struct Vector {
 	Vector<I> planarProjection(const Hyperplane<I>& plane) {
 		Vector<I> norm = plane.mnormal->normalised();
 		return *this - (dotProduct(this, norm) - dotProduct(norm, plane.mpoint)) * norm;
+	}
+
+	Vector<3> rotatedAboutAxis(const Vector<3>& axis, const float& theta) {
+		float sinTheta = std::sin(theta);
+		float cosTheta = std::cos(theta);
+		float oneMinusCos = 1. - cosTheta;
+
+		float xyOne = axis[0] * axis[1] * oneMinusCos;
+		float xzOne = axis[0] * axis[2] * oneMinusCos;
+		float yzOne = axis[1] * axis[2] * oneMinusCos;
+
+		Matrix rotMat = { {axis[0] * axis[0] * oneMinusCos + cosTheta, xyOne + axis[2] * sinTheta, xzOne - axis[1] * sinTheta},
+			{xyOne - axis[2] * sinTheta, axis[1] * axis[1] * oneMinusCos + cosTheta, yzOne + axis[0] * sinTheta},
+			{xzOne + axis[1] * sinTheta, yzOne - axis[0] * sinTheta, axis[2] * axis[2] * oneMinusCos + cosTheta} };
+
+		return rotMat * *this.asMatrix().transpose();
 	}
 };
 
