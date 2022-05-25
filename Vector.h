@@ -60,11 +60,6 @@ struct Vector {
 		std::cerr << "Error: no conversion from Vector<" << I << "> to Vector<" << J << ">" << std::endl;
 	}
 
-	// Gets component comp value, for example, Component(1) gets the firt component
-	float component(int comp) {
-		return mcoords[comp - 1];
-	}
-
 	Vector& operator=(const Vector& other) {
 		mcoords = other.mcoords;
 		return *this;
@@ -130,11 +125,16 @@ struct Vector {
 	}
 	float operator[](const int& index) const { return mcoords[index]; }
 
-	friend std::ostream& operator <<(std::ostream& out, const Vector<I>& vec) {
+	friend std::ostream& operator<<(std::ostream& out, const Vector<I>& vec) {
 		for (int i = 0; i < I - 1; ++i) {
 			out << vec.mcoords[i] << ", ";
 		}
 		return out << vec.mcoords.back();
+	}
+
+	// Gets component comp value, for example, Component(1) gets the firt component
+	float component(int comp) {
+		return mcoords[comp - 1];
 	}
 
 	// Returns the magnitude of the Vector as a float

@@ -9,6 +9,9 @@ void Chain::addJoint(ChainMember& joint) {
 	mjoints.emplace_back(std::make_unique<ChainMember>(joint));
 }
 
+/*	Will probably need to handle root and end joints separately
+* 
+*/
 // Performs a single iteration of Fabrik towards a Vector<3> goal
 void Chain::fabrik(Vector<3> goal) {
 	Vector<3> root = mjoints[0]->position();
@@ -21,8 +24,8 @@ void Chain::fabrik(Vector<3> goal) {
 	}
 
 	// Backwards pass over mchain
-	for (int i = 1; i < mjoints.size(); ++i) {
+	for (unsigned int i = 1; i < mjoints.size(); ++i) {
 		mjoints[i]->rconstrainedSeek(*mjoints[i-1]);
-		target = mjoints[i]->end();
+		//target = mjoints[i]->end();
 	}
 }

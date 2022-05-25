@@ -4,7 +4,7 @@
 template<typename T>
 class FabrikStructure {
 private:
-	std::vector<&T> mchains;
+	std::vector<T> mchains;
 public:
 	FabrikStructure();
 	virtual ~FabrikStructure();
